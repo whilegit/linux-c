@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h> 
+#include <stdio.h>
 
 /**
  * 原型函数
@@ -83,6 +84,8 @@
  *   @param path    文件路径
  *   @param buf     struct stat结构体指针
  *   @return 返回0成功,返回-1失败,错误代码存放于全局变量errno中
+ *   @注意 stat(..)调用在遇到符号连接时,继续追查目标文件.
+ *         lstat则停止,返回符号文件本身
  * 
  *   struct stat{
  *      mode_t     st_mode;       //文件权限和文件类型信息
@@ -102,15 +105,40 @@
  *   
  *   mode_t st_mode成员的解释
  *   1. mode_t的类型为__U32_TYPE, 也就是unsigned int类型
-     2. 文件类型相关的掩码S_IFMT是0170000, 位于第15位至第12位,16进制掩码为0xf000
-        公共宏原型: #define __S_ISTYPE(mode,mask) (((mode) & __S_IFMT) == (mask))
-        a). S_IFBLK: 0x6000特殊的块设备标志. 宏S_ISBLK(st_mode)用于测试是否是特殊的块设备.
-            S_ISBLK(st_mode)的原型为: #define S_ISBLK(mode) __S_ISTYPE((mode), __S_IFBLK)
-        b). S_IFCHR: 0x2000字符设备标志. 宏S_ISCHR(st_mode)用于测试是否是字符设备(宏定义参照S_ISBLK(mode))
-        c). S_IFDIR: 0x4000是否为目录. 宏S_ISDIR(st_mode)用于测试是否是目录
-        d). S_IFIFO: 0x1000是否是FIFO设备. 宏S_ISFIFO(st_mode)用于本测试
-        e). S_IFREG: 0x8000是否为普通文件. 宏S_ISREG(st_mode)用于本测试
-        f). S_IFLNK: 0xA000是否为符号连接. 宏S_ISLNK(st_mode)用于本测试
+ *   2. 文件类型相关的掩码S_IFMT是0170000, 位15:12,16进制掩码为0xf000
+ *      公共宏原型: #define __S_ISTYPE(mode,mask) (((mode) & __S_IFMT) == (mask))
+ *      a). S_IFBLK: 0x6000特殊的块设备标志. 宏S_ISBLK(st_mode)用于测试是否是特殊的块设备.
+ *          S_ISBLK(st_mode)的原型为: #define S_ISBLK(mode) __S_ISTYPE((mode), __S_IFBLK)
+ *      b). S_IFCHR: 0x2000字符设备标志. 宏S_ISCHR(st_mode)用于测试是否是字符设备(宏定义参照S_ISBLK(mode))
+ *      c). S_IFDIR: 0x4000是否为目录. 宏S_ISDIR(st_mode)用于本测试
+ *      d). S_IFIFO: 0x1000是否是FIFO设备. 宏S_ISFIFO(st_mode)用于本测试
+ *      e). S_IFREG: 0x8000是否为普通文件. 宏S_ISREG(st_mode)用于本测试
+ *      f). S_IFLNK: 0xA000是否为符号连接. 宏S_ISLNK(st_mode)用于本测试
+ *   3. 文件权限相关的掩码有三个,分别是
+ *      a). S_IRWXU(0x01C0,位8:6) 文件属主的读写执行权限
+ *          读标志位  S_IRUSR(0x0100,第8位)
+ *          写标志位  S_IWUSR(0x0080,第7位)
+ *          执行标志位S_IXUSR(0x0040,第6位)
+ *      b). S_IRWXG(0x38,位5:3) 文件属组的读写执行权限
+ *          读标志位  S_IRGRP(0x0020,第5位)
+ *          写标志位  S_IWGRP(0x0010,第4位)
+ *          执行标志位S_IXGRP(0x0008,第3位)
+ *      c). S_IRWXO(0x07,位2:0) 其他用户的读写执行权限
+ *          读标志位  S_IROTH(0x0004,第2位)
+ *          写标志位  S_IWOTH(0x0002,第1位) 
+ *          执行标志位S_IXOTH(0x0001,第0位)
+ *   4. SUID和SGID相关(文件运行时以文件属主或属组的身份运行)
+ *      a). S_ISUID(bit 12) 是否设置了SUID
+ *      b). S_ISGID(bit 11) 是否设置了SGID
+ *--------------------------------------------------------------------------------------------
+ *
+ * 8. 复制文件描述符 
+ *
+ *    int dup(int fildes);
+ *    int dup2(int fildes, int filedes2);
+ *
+ *    @return  具体功能未知
+ *  
  */
 
 
@@ -141,6 +169,7 @@ int main(int argc, char** argv){
     write(1, "文件Copy测试", 17);
 
     */
+    /*
     char block[1024];
     int in, out;
     int nread;
@@ -163,6 +192,10 @@ int main(int argc, char** argv){
     offset = lseek(out, -8, SEEK_END);
     write(out, "d", 1);
     close(out);
-
+    */
+    struct stat st;
+    int fildes = open("file.tmp", O_RDONLY);
+    fstat(fildes, &st);
+    printf("%o",st.st_mode);
     return 0;
 }
