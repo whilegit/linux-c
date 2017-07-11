@@ -2,7 +2,6 @@
  * unistd.h是POSIX操作系统API功能的头文件,应当最先出现
  */
 #include <unistd.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h> 
@@ -12,7 +11,8 @@
  * 1.write 写数据到文件: 
  *
  *    size_z write(int fildes, const void *buf, size_t nbytes)
- *
+ * 
+ *    写一个字节后,文件指针向后移一位
  *    其中fildes为文件描述符编号,已自动打开的三个描述符为:　0标准输入,1标准输出,2标准错误　
  *    返回写入的字节数:
  *       0      未写入任何数据返回.
@@ -60,8 +60,59 @@
  *    
  *    @param cmd 操作码 
  *    @description: 硬件的特殊接口.
- *    
+ *-----------------------------------------------------------------------------------------------------------
+ * 6. lseek系统调用
+ *   
+ *    off_t lseek(int fildes, off_t offset, int whence)
+ * 
+ *    @param filedes 文件描述符
+ *　　@param offset  偏移值　可以为负值. off_t类型是与具体实现相关,类型在sys/types.h中定义
+ *    @param whence  该参数决定前一个参数offset的含义,可以是如下值之一:
+ *                   SEEK_SET: offset是一个绝对位置(从0开始)
+ *                   SEEK_CUR: offset是相对于当前位置的一个偏移值
+ *                   SEEK_END: offset是相对于文件尾的一个偏移值(length + offset)
+ *    @return 返回相对于文件头的绝对偏移值.
+ *-----------------------------------------------------------------------------------------------
+ * 7. 描述符相关的文件状态信息的系统调用
+ *
+ *   int fstat(int fildes, struct stat *buf);
+ *   int stat(const char *path, struct stat *buf);
+ *   int lstat(const char *path, struct stat *buf);
+ *   
+ *   @param fildes  文件描述符
+ *   @param path    文件路径
+ *   @param buf     struct stat结构体指针
+ *   @return 返回0成功,返回-1失败,错误代码存放于全局变量errno中
+ * 
+ *   struct stat{
+ *      mode_t     st_mode;       //文件权限和文件类型信息
+ *      ino_t      st_ino;        //与该文件关联的inode
+ *      dev_t      st_dev;        //保存文件的设备
+ *      dev_t      st_rdev;       
+ *      nlink_t    st_nlink;      //该文件硬连接的数量
+ *      uid_t      st_uid;        //文件属主的UID号
+ *      gid_t      st_gid;        //文件属主的GID号
+ *      off_t      st_size;
+ *      time_t     st_atime;      //文件上一次被访问的时间
+ *      time_t     st_mtime;      //文件内容上一次被修改的时间
+ *      time_t     st_ctime;      //文件的权限\属主\组或者内容上一次被修改的时间
+ *      blksize_t  st_blksize;
+ *      blkcnt_t   st_blocks;
+ *   };
+ *   
+ *   mode_t st_mode成员的解释
+ *   1. mode_t的类型为__U32_TYPE, 也就是unsigned int类型
+     2. 文件类型相关的掩码S_IFMT是0170000, 位于第15位至第12位,16进制掩码为0xf000
+        公共宏原型: #define __S_ISTYPE(mode,mask) (((mode) & __S_IFMT) == (mask))
+        a). S_IFBLK: 0x6000特殊的块设备标志. 宏S_ISBLK(st_mode)用于测试是否是特殊的块设备.
+            S_ISBLK(st_mode)的原型为: #define S_ISBLK(mode) __S_ISTYPE((mode), __S_IFBLK)
+        b). S_IFCHR: 0x2000字符设备标志. 宏S_ISCHR(st_mode)用于测试是否是字符设备(宏定义参照S_ISBLK(mode))
+        c). S_IFDIR: 0x4000是否为目录. 宏S_ISDIR(st_mode)用于测试是否是目录
+        d). S_IFIFO: 0x1000是否是FIFO设备. 宏S_ISFIFO(st_mode)用于本测试
+        e). S_IFREG: 0x8000是否为普通文件. 宏S_ISREG(st_mode)用于本测试
+        f). S_IFLNK: 0xA000是否为符号连接. 宏S_ISLNK(st_mode)用于本测试
  */
+
 
 
 int main(int argc, char** argv){
@@ -98,6 +149,20 @@ int main(int argc, char** argv){
     while(nread = read(in, block, sizeof(block)) > 0){
         write(out, block, nread);
     }
+    close(in);
+    close(out);
+
+    out = open("file_seek.tmp", O_WRONLY | O_TRUNC);
+    write(out, "0123456789", 10);
+    int offset = lseek(out, 4, SEEK_SET);
+    write(out, "a", 1);
+    offset = lseek(out, 2, SEEK_CUR);
+    write(out, "b", 1);
+    offset = lseek(out, -2, SEEK_CUR);
+    write(out, "c", 1);
+    offset = lseek(out, -8, SEEK_END);
+    write(out, "d", 1);
+    close(out);
 
     return 0;
 }
