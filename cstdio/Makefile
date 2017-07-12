@@ -1,2 +1,2 @@
-file:fopen.c
-	gcc -o fopen fopen.c
+file:file.c
+	gcc -o file file.c
