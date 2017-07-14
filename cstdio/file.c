@@ -83,6 +83,33 @@
  *  @return 成功返回0,失败返回-１并设置errno指出错误.这一点区别于lseek().
  *  @comment 参见系统调用lseek(int fildes, off_t offset, int whence). 其中参数部分两函数是等价的.
  *           如果文件的打开方式不是r+,fseek(...)函数重设文件指针可能会无效.
+ *-----------------------------------------------------------------------------------
+ * 7. 从文件流中读取一个字节
+ * 
+ *   int fgetc(FILE *stream);
+ *   int getc(FILE *stream);
+ *   int getchar();
+ * 
+ *  @return 如果返回EOF(-1) 表示发生了错误或者到达了文件结尾. 使用feof()或者ferror()区分两种情况
+ *          其他整数int表示char
+ *  @comment getc(FILE *stream)可能是一个<宏实现macro>,所以参数应没有副作用.
+ *  @comment getchar()相应于getc(stdin),从标准输入中读取一个字节.
+ *
+ *  
+ *------------------------------------------------------------------------------------
+ * 8. 向文件流输出一个字节
+ * 
+ *   int fputc(int c, FILE *stream);
+ *   int putc(int c, FILE *stream);
+ *   int putchar(int c); 
+ *
+ *  @return 如果写入成功,返回写入的值;　如果失败返回EOF(-1)
+ *  @comment putc(int c, FILE *stream)可能是一个宏实现,所以参数应该没有副件用.
+ *  @comment putchar(int c)相当于putc(c, stdout).
+ *  
+ *------------------------------------------------------------------------------------
+ * 9. 
+ *
  *********************************************/
 void fopen_test(){
    FILE* f = fopen("file.tmp","r"); 
@@ -99,7 +126,12 @@ void fopen_test(){
    fseek(f, -8, SEEK_END);
    fwrite("!00",1,3,f);
    fflush(f);
-   scanf("Hello %d", &len);
+   
+   buf[0] = getc(f);
+   buf[1] = '\n';
+   buf[2] = 0x00;
+   putchar(buf[0]);
+   putchar(buf[1]);
    fclose(f);   
 }
 int main(){
