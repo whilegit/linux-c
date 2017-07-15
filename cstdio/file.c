@@ -108,8 +108,34 @@
  *  @comment putchar(int c)相当于putc(c, stdout).
  *  
  *------------------------------------------------------------------------------------
- * 9. 
+ * 9. 从文件流获取一个字符串
+ * 
+ *   char *fgets(char *s, int n, FILE *stream);
+ *   char *gets(char *s);
+ *  
+ *   @param s 向函数提供的读缓冲区
+ *   @param n 计划读取的字节数(实际上可能利用大小是n-1字节,函数会自动在缓冲区后面加上\0)
+ *   @param stream 文件流
+ *   @return 字符串s或者NULL(可能是已经到达EOF或者发生错误,查看errno)
+ *   @comment 出现下列情况时,函数返回:
+ *　　　　　　1. 遇到换行符\n(换行符也会写进缓冲区里)
+ *            2. 已经传输了n-1个字节
+ *            3. 到达文件尾(此时会设置文件流的EOF标识)
+ *   @comment 
+ *      gets(char *s)从标准输入中获取字符串,注意:换行符会被丢弃,该函数会造成****缓冲区溢出*****.
  *
+ * -----------------------------------------------------------------------------------------
+ * 10. 格式化输出函数printf系列化函数
+ *
+ *   int printf(const char *format, ...)
+ *   int sprintf(char *s, const char *format, ...)
+ *   int fprintf(FILE *stream, const char *format, ...)
+ *
+ *   @param format 格式控制字符串
+ *      
+ *   @param stream 文件流
+ *   @param s 向sprintf提供的写缓冲区
+ *   @return 返回输出的字符个数.若发生错误将返回一个负整数,并设置errno
  *********************************************/
 void fopen_test(){
    FILE* f = fopen("file.tmp","r"); 
@@ -132,6 +158,14 @@ void fopen_test(){
    buf[2] = 0x00;
    putchar(buf[0]);
    putchar(buf[1]);
+
+   fgets(buf, 20, f);
+   printf("%s", buf);
+
+   char *tmpbuf = fgets(buf, 20, f);
+   if(tmpbuf == NULL){
+       printf("%s", "\n到达文件尾");
+   }
    fclose(f);   
 }
 int main(){
