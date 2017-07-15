@@ -109,7 +109,7 @@
  *  
  *------------------------------------------------------------------------------------
  * 9. 从文件流获取一个字符串
- * 
+ * 从文件流获取一个字符串
  *   char *fgets(char *s, int n, FILE *stream);
  *   char *gets(char *s);
  *  
@@ -132,10 +132,31 @@
  *   int fprintf(FILE *stream, const char *format, ...)
  *
  *   @param format 格式控制字符串
- *      
+ *       %d(%i): 以十进制输出整数
+ *       %o(%x): 以八进制或十六进制输出整数      
+ *       %c    : 输出字符
+ *       %s    : 输出字符串
+ *       %f    : 输出单精度浮点数
+ *       %e    : 以科学计数法输出双精度浮点数
+ *       %g    : 以一般格式输出一个双精度浮点数
+ *       前导格式
+ *             %10s表示输出10位宽度的字符串,字数不足时前面加空格
+ *             %-10s不足时在后面加空格
+ *             %10d,%-10d,%010d,%10.4f等
  *   @param stream 文件流
  *   @param s 向sprintf提供的写缓冲区
  *   @return 返回输出的字符个数.若发生错误将返回一个负整数,并设置errno
+ *  
+ *   @comment sprintf输出到字符串缓冲区
+ *   @comment fprintf输出到文件流中
+ *--------------------------------------------------------------------------------------
+ * 11. 格式化读取字符串
+ * 
+ *   int scanf(const char *format, ...);
+ *   int fscanf(FILE *stream, const char *format, ...)
+ *   int sscanf(const char *s, const char *format,...)
+ * 
+ *   @comment 几个函数对标printf系列函数.总体来说,scanf系列函数历史上的评价不高,尽量使用fread和fgets函数替代.
  *********************************************/
 void fopen_test(){
    FILE* f = fopen("file.tmp","r"); 
