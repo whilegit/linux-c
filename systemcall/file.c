@@ -99,8 +99,8 @@
  *      time_t     st_atime;      //文件上一次被访问的时间
  *      time_t     st_mtime;      //文件内容上一次被修改的时间
  *      time_t     st_ctime;      //文件的权限\属主\组或者内容上一次被修改的时间
- *      blksize_t  st_blksize;
- *      blkcnt_t   st_blocks;
+ *      blksize_t  st_blksize;    //文件单位块的大小(本机显示是4096,这个可能是位单位)
+ *      blkcnt_t   st_blocks;     //文件所占用的块数.文件实际占用磁盘的大小为st_blksize * st_blocks,　该值通常大于st_size.
  *   };
  *   
  *   mode_t st_mode成员的解释
@@ -196,6 +196,7 @@ int main(int argc, char** argv){
     struct stat st;
     int fildes = open("file.tmp", O_RDONLY);
     fstat(fildes, &st);
-    printf("%o",st.st_mode);
+    printf("%o\n",st.st_mode);
+    printf("stat.st_size=%d, stat.st_blksize(%d)*stat.st_blocks(%d)=%d\n", st.st_size, st.st_blksize, st.st_blocks, st.st_blksize*st.st_blocks);
     return 0;
 }

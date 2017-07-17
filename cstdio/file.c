@@ -199,6 +199,26 @@
  *      freopen("/dev/tty, "r", stdin");    //恢复stdin至标准输入(如果tty不行,尝试/dev/console)
  *      freopen("/dev/tty", "w", stdout);   //恢复stdout至标准输出(如果tty不行,尝试/dev/console)
  *  
+ *-----------------------------------------------------------------------------------
+ * 16. 设置文件流的缓冲机制
+ * 
+ *  int setvbuf(FILE *stream, char *buf, int mode, size_t n);
+ *
+ *  @param stream 要设置的文件流
+ *  @param buf    期望使用的缓冲区地址
+ *  @param mode   默认的值为_IOFBF
+ *         _IOFBF(0): fully buffered. 表示满缓存,即当缓冲区的填满后(大小于stat.st_blksize),才fflush底层系统调用.
+ *         _IOLBF(1): line buffered. 表示行缓存,即当缓冲区遇到换行符\n或者缓中区满后,才fflush底层系统调用.
+ *         _IONBF(2): no buffering. 表示无缓存.
+ *  @param n      缓冲区的大小,内部实现时通常近视到最接近到2次方数.
+ *  @return 成功返回0, 失败返回非0
+ *-----------------------------------------------------------------------------------
+ * 17. 删除文件或目录
+ * 
+ *  int remove(const char *path);
+ *  
+ *  @param path 如path是文件,相当于unlink函数;如为目录,相当于rmdir函数.
+ *  @return 成功返回0, 失败返回非0并设置errno
  *********************************************/
 void fopen_test(){
    FILE* f = fopen("file.tmp","r"); 
