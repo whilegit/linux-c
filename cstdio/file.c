@@ -157,6 +157,48 @@
  *   int sscanf(const char *s, const char *format,...)
  * 
  *   @comment 几个函数对标printf系列函数.总体来说,scanf系列函数历史上的评价不高,尽量使用fread和fgets函数替代.
+ * ------------------------------------------------------------------------------
+ * 12. 获取或设置文件流的当前读写位置
+ *  
+ *   int fgetpos(FILE *stream, fpos_t *pos);
+ *   int fsetpos(FILE *stream, const fpos_t *pos);
+ *   
+ *   @param pos 这是一个fpos_t结构体,里面有两个成员ik(off64_t)__pos和(mbstate_t )__state
+ *              由于需要支持mbstring,所有fpos_t不能设计成简单的off64_t
+ *   @return 返回0执行成功,返回负数表示失败.　失败时同时置位errno
+ *
+ *----------------------------------------------------------------------------------
+ * 13. 获取当前文件流的读写位置的偏移值
+ *   
+ *   long int ftell(FILE *stream);
+ *
+ *   @return 返回偏移值
+ *   @comment 注意与fgetpos的区别,fgetpos返回一个fpos_t的结构体
+ *
+ *----------------------------------------------------------------------------------
+ * 14. 重置文件流的读写位置
+ *
+ *  void rewind(FILE *f); 
+ *
+ *  @comment 相当于 fseek(f, 0L, SEEK_SET)
+ *
+ *----------------------------------------------------------------------------------
+ * 15. 重新使用文件流
+ * 
+ *   FILE * freopen(const char *file_name, const char *mode, FILE *stream); 
+ *
+ *  @param file_name文件名
+ *  @param mode 读写模式,同fopen的mode参数
+ *  @param stream 重新打开的stream流
+ *  @comment 如果重新找开stdin,stdout,stderr将使程序具备重定向的功能
+ *           普通文件可以改变读写模式和对应的文件
+    @return 返回文件流(是否是原来的FILE*呢???),　失败返回NULL
+ *  @example 
+ *      freopen("stdin.log", "r", stdin);   //标准输入重定向至stdin.log
+ *      freopen("stdout.log", "w", stdout); //标准输出重定向至stdout.log
+ *      freopen("/dev/tty, "r", stdin");    //恢复stdin至标准输入(如果tty不行,尝试/dev/console)
+ *      freopen("/dev/tty", "w", stdout);   //恢复stdout至标准输出(如果tty不行,尝试/dev/console)
+ *  
  *********************************************/
 void fopen_test(){
    FILE* f = fopen("file.tmp","r"); 
@@ -171,8 +213,16 @@ void fopen_test(){
    f = fopen("file.tmp", "r+");
    fwrite("ABCDEFG\n",1,8,f);
    fseek(f, -8, SEEK_END);
+   fpos_t pos;
+   fgetpos(f, &pos);
    fwrite("!00",1,3,f);
+   fsetpos(f, &pos);
+   fputc('?', f);
+   rewind(f);
+   fputc('%', f);
    fflush(f);
+
+   printf("ftell %d\r\n", ftell(f));
    
    buf[0] = getc(f);
    buf[1] = '\n';
@@ -183,11 +233,16 @@ void fopen_test(){
    fgets(buf, 20, f);
    printf("%s", buf);
 
+
    char *tmpbuf = fgets(buf, 20, f);
    if(tmpbuf == NULL){
        printf("%s", "\n到达文件尾");
    }
    fclose(f);   
+   freopen("file.tmp", "a", stdout);
+   printf("freopen(stdout)");
+   freopen("/dev/tty", "w", stdout);
+   printf("restore stdout\n");
 }
 int main(){
     fopen_test();
