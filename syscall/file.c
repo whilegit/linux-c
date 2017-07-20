@@ -88,18 +88,18 @@
  *         lstat则停止,返回符号文件本身
  * 
  *   struct stat{
- *      mode_t     st_mode;       //文件权限和文件类型信息
+ *      mode_t     st_mode;       //文件权限和文件类型信息(实际类型通常为__U32_TYPE)
  *      ino_t      st_ino;        //与该文件关联的inode
  *      dev_t      st_dev;        //保存文件的设备
  *      dev_t      st_rdev;       
  *      nlink_t    st_nlink;      //该文件硬连接的数量
- *      uid_t      st_uid;        //文件属主的UID号
- *      gid_t      st_gid;        //文件属主的GID号
- *      off_t      st_size;
+ *      uid_t      st_uid;        //文件属主的UID号(实际类型通常为__U32_TYPE)
+ *      gid_t      st_gid;        //文件属主的GID号(实际类型通常为__U32_TYPE)
+ *      off_t      st_size;       //文件大小,以字节byte为单位
  *      time_t     st_atime;      //文件上一次被访问的时间
  *      time_t     st_mtime;      //文件内容上一次被修改的时间
  *      time_t     st_ctime;      //文件的权限\属主\组或者内容上一次被修改的时间
- *      blksize_t  st_blksize;    //文件单位块的大小(本机显示是4096,这个可能是位单位)
+ *      blksize_t  st_blksize;    //文件单位块的大小(本机显示是4096,这个可能是位bit单位)
  *      blkcnt_t   st_blocks;     //文件所占用的块数.文件实际占用磁盘的大小为st_blksize * st_blocks,　该值通常大于st_size.
  *   };
  *   
@@ -128,10 +128,9 @@
  *          写标志位  S_IWOTH(0x0002,第1位) 
  *          执行标志位S_IXOTH(0x0001,第0位)
  *   4. SUID和SGID相关(文件运行时以文件属主或属组的身份运行)
- *      a). S_ISUID(bit 12) 是否设置了SUID
- *      b). S_ISGID(bit 11) 是否设置了SGID
+ *      a). S_ISUID(bit 11) 是否设置了SUID
+ *      b). S_ISGID(bit 10) 是否设置了SGID
  *--------------------------------------------------------------------------------------------
- *
  * 8. 复制文件描述符 
  *
  *    int dup(int fildes);
@@ -139,6 +138,22 @@
  *
  *    @return  具体功能未知
  *  
+ *-------------------------------------------------------------------------------------------
+ * 9. chmod 系统调用,用于修改文件或目录的访问权限
+ *
+ *   #include <sys/stat.h>
+ *   int chmod(const char *path, mode_t mode);
+ *  
+ *   @comment 调置文件的模式
+ *   @comment 这个函数是shell程序chmod的基础.
+ *   @comment 该函数只能由文件的属主或者超级用户才可以调用.
+ *   @return 成功返回0, 失败返回非0
+ *-----------------------------------------------------------------------------------------
+ * 10. chown 系统调用,修改文件的属主和属组
+ *
+ *  #include <unistd.h>
+ *  int chown(const char *path, uid_t owner, gid_t group);
+ *   
  */
 
 
