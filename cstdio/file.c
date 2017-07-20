@@ -219,6 +219,34 @@
  *  
  *  @param path 如path是文件,相当于unlink函数;如为目录,相当于rmdir函数.
  *  @return 成功返回0, 失败返回非0并设置errno
+ *---------------------------------------------------------------------------
+ * 18. 文件流错误
+ *  
+ *  #include <errno.h>
+ *  extern int errno;
+ *  int ferror(FILE *stream);
+ *  int feof(FILE *stream);
+ *  void clearerr(FILE *stream);
+ *
+ *  @comment 调用可能产生errno的函数后,应立即获取errno值,并把它拷贝到另一个变量中.
+ *  @comment ferror用于测试文件流的错误标识,如果被调置则返回非0值.
+ *　@comment feof用于测试文件流的文件尾标识,如果被设置则返回非0值.
+ *  @comment clearerr用于清除文件流的eof标识和err标识.
+ *  @comment 可以这样使用ferror和feof
+             if(feof(file_stream)){
+             }
+             if(ferror(file_stream)){
+             }
+ *
+ *-----------------------------------------------------------------------------
+ * 19. 文件流FILE和文件描述符fd
+ *  
+ *   int fileno(FILE *stream);
+ *   FILE *fdopen(int fildes, const char *mode);
+ *  
+ *   @comment 通过fileno可以获取文件流对应的文件描述符
+ *   @commnet 通过fdopen可以通过文件描述符打开对应的文件流
+ *
  *********************************************/
 void fopen_test(){
    FILE* f = fopen("file.tmp","r"); 
@@ -258,6 +286,7 @@ void fopen_test(){
    if(tmpbuf == NULL){
        printf("%s", "\n到达文件尾");
    }
+   printf("file no = %d\n", fileno(f));
    fclose(f);   
    freopen("file.tmp", "a", stdout);
    printf("freopen(stdout)");
