@@ -154,6 +154,25 @@
  *  #include <unistd.h>
  *  int chown(const char *path, uid_t owner, gid_t group);
  *   
+ *-----------------------------------------------------------------------------------------
+ * 12. mkdir和rmdir系统调用
+ *
+ *  #include <sys/stat.h>
+ *  #include <unistd.h>
+ *  int mkdir(const char *path, mode_t mode);
+ *  int rmdir(const char *path);
+ *  
+ * @comment mkdir不能递归建立,一次只能建立一个目录
+ * @comment rmdir删除目录系统调用，只有当目录为空时才行。
+ *---------------------------------------------------------------
+ * 13. chdir系统调用和getcwd函数
+ *
+ *  #include <unistd.h>
+ *  int chdir(const char *path);
+ *  char *getcwd(char *buf, size_t size);
+ *
+ *  @comment chdir  改变当前的工作目录
+ *  @comment getcwd 获取当前的工作目录, 若目录的名称超过size长度，则返回null，否则返回buf并设置地址。
  */
 
 
@@ -213,5 +232,12 @@ int main(int argc, char** argv){
     fstat(fildes, &st);
     printf("%o\n",st.st_mode);
     printf("stat.st_size=%d, stat.st_blksize(%d)*stat.st_blocks(%d)=%d\n", st.st_size, st.st_blksize, st.st_blocks, st.st_blksize*st.st_blocks);
+
+    //mkdir("test", S_IRUSR | S_IWUSR);  
+    //rmdir("test");
+    //chdir("test");
+    //char path[48];
+    //getcwd(path, sizeof(path));
+    //printf("getcwd(): %s\n", path);
     return 0;
 }
