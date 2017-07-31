@@ -92,7 +92,8 @@
  *      ino_t      st_ino;        //与该文件关联的inode
  *      dev_t      st_dev;        //保存文件的设备
  *      dev_t      st_rdev;       
- *      nlink_t    st_nlink;      //该文件硬连接的数量
+ *      nlink_t    st_nlink;      //该文件硬连接的数量(实际类型为unsigned long int 64位),当文件的连接数减为0, 文件将被删除
+ *                                //open创建文件时连接数置为1, link调用时连接数加1, unlink调用时连接数减1
  *      uid_t      st_uid;        //文件属主的UID号(实际类型通常为__U32_TYPE)
  *      gid_t      st_gid;        //文件属主的GID号(实际类型通常为__U32_TYPE)
  *      off_t      st_size;       //文件大小,以字节byte为单位
@@ -122,10 +123,7 @@
  *      b). S_IRWXG(0x38,位5:3) 文件属组的读写执行权限
  *          读标志位  S_IRGRP(0x0020,第5位)
  *          写标志位  S_IWGRP(0x0010,第4位)
- *          执行标志位S_IXGRP(0x0008,第3位)
- *      c). S_IRWXO(0x07,位2:0) 其他用户的读写执行权限
- *          读标志位  S_IROTH(0x0004,第2位)
- *          写标志位  S_IWOTH(0x0002,第1位) 
+ *          执行标志位S_IXGRP(0x0008,第3位) *      c). S_IRWXO(0x07,位2:0) 其他用户的读写执行权限 *          读标志位  S_IROTH(0x0004,第2位) *          写标志位  S_IWOTH(0x0002,第1位) 
  *          执行标志位S_IXOTH(0x0001,第0位)
  *   4. SUID和SGID相关(文件运行时以文件属主或属组的身份运行)
  *      a). S_ISUID(bit 11) 是否设置了SUID
@@ -154,6 +152,23 @@
  *  #include <unistd.h>
  *  int chown(const char *path, uid_t owner, gid_t group);
  *   
+ *  @comment owner 文件属主,通过getuid获取,uid_t是_U32_TYPE类型
+ *  @comment group 文件属组,通过getgid获取,gid_t是_U32_TYPE类型
+ *  @comment 本函数只能是文件属主或者超级用户才能够调用.成功返回0, 失败返回非0
+ *           经过测试,文件属主想要改变本文件的属主也会失败,除非在运行程序时加上sudo就会成功
+ *----------------------------------------------------------------------------------------
+ * 11. unlink,link,syslink系统调用
+ * 
+ *   #inlcude <unistd.h>
+ *   int unlink(const char *path);
+ *   int link(const char *path1, const char *path2);
+ *   int syslink(const st * path1, const char *path2); 
+ *   
+ *   @comment 如果文件的链接数减少到零,并且没有进程打开它,这个文件就会被删除.目录项将会被先删除.
+ *            unlink用于删除文件,命令rm就是使用这个系统调用.
+ *   @comment 系统调用link用于创建一个指向已有文件path1的新连接path2.
+ *   @comment 系统调用syslink用于创建一个已有文件path1的软连接path2.
+ *   
  *-----------------------------------------------------------------------------------------
  * 12. mkdir和rmdir系统调用
  *
@@ -173,6 +188,9 @@
  *
  *  @comment chdir  改变当前的工作目录
  *  @comment getcwd 获取当前的工作目录, 若目录的名称超过size长度，则返回null，否则返回buf并设置地址。
+ *--------------------------------------------------------------------------------------------------
+ *  目录流DIR相关函数opendir/closedir/readdir/telldir/seekdir,请查看dirent.c文件
+ *-------------------------------------------------------------------------------------------------
  */
 
 
@@ -233,11 +251,16 @@ int main(int argc, char** argv){
     printf("%o\n",st.st_mode);
     printf("stat.st_size=%d, stat.st_blksize(%d)*stat.st_blocks(%d)=%d\n", st.st_size, st.st_blksize, st.st_blocks, st.st_blksize*st.st_blocks);
 
+<<<<<<< Updated upstream
     //mkdir("test", S_IRUSR | S_IWUSR);  
     //rmdir("test");
     //chdir("test");
     //char path[48];
     //getcwd(path, sizeof(path));
     //printf("getcwd(): %s\n", path);
+=======
+    chmod("file.tmp", S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH ); 
+    printf("chown=%d\n",chown("file.tmp",10010,10010));
+>>>>>>> Stashed changes
     return 0;
 }
