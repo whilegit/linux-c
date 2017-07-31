@@ -227,9 +227,15 @@
  *  int ferror(FILE *stream);
  *  int feof(FILE *stream);
  *  void clearerr(FILE *stream);
+ *  
+ *  #include <string.h>
+ *  char *strerror(int errno);
+ *  
+ *  #include <stdio.h>
+ *  void perror(const char *s);
  *
  *  @comment 调用可能产生errno的函数后,应立即获取errno值,并把它拷贝到另一个变量中.
- *  @comment ferror用于测试文件流的错误标识,如果被调置则返回非0值.
+ *  @comment ferror用于测试文件流的错误标识,如果被设置则返回非0值.
  *　@comment feof用于测试文件流的文件尾标识,如果被设置则返回非0值.
  *  @comment clearerr用于清除文件流的eof标识和err标识.
  *  @comment 可以这样使用ferror和feof
@@ -237,6 +243,21 @@
              }
              if(ferror(file_stream)){
              }
+ *  @comment strerror函数把errno错误号映射到字符串,这有助于记录错误的发生
+             常见的错误号和宏如下:
+             EPERM    1   操作不允许, Operation not permitted.
+             ENOENT   2   文件或目录不存在, No such file or directory.
+             EINTR    4   系统调用被中断, Interrupted system call. 
+             EIO      5   I/O错误
+             EBUSY    16  设备或资源忙, Device or resource busy
+             EEXIST   17  文件存在, File exists
+             EINVAL   22  无效参数, Invalid arguement
+             EMFILE   24  打开的文件过多, Too many open files.
+             ENODEV   19  设备不存在, No such device.
+             EISDIR   21  这是一个目录, Is a directory.
+             ENOTDIR  20  这不是一个目录, Is not a directory.
+             ...
+ *  @comment perror将错误信息送到标准输出: 如perror("programA");将打印出 programA: Too many open files. 
  *
  *-----------------------------------------------------------------------------
  * 19. 文件流FILE和文件描述符fd
@@ -295,5 +316,8 @@ void fopen_test(){
 }
 int main(){
     fopen_test();
+    printf("%s\n", strerror(4));
+    fopen("noexists.txt", "r");
+    perror("ProgramA");
     return 0;
 }
