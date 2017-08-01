@@ -190,6 +190,43 @@
  *  @comment getcwd 获取当前的工作目录, 若目录的名称超过size长度，则返回null，否则返回buf并设置地址。
  *--------------------------------------------------------------------------------------------------
  *  目录流DIR相关函数opendir/closedir/readdir/telldir/seekdir,请查看dirent.c文件
+ *--------------------------------------------------------------------------------------------------
+ * 14. mmap系统调用
+ *
+ *   #include <sys/mman.h>
+ *   void *mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t);
+ *   
+ *   @param addr 请求使用某个特定的内存地址,如果取NULL结果指针将自动分配,这是推荐的做法.
+ *　 @param len  请求使用的内存长度
+ *   @param prot 内存的访问权限,可以由PROT_READ(可读), PROT_WRITE(可写), PROT_EXEC(可执行), PROT_NONE(不可访问)
+ *               如映射了文件,这个权限不要大于文件描述符的访问权限
+ *   @param flags 控制对内存段的改变所造成的影响
+ *  　　　　　　　MAP_PRIVATE  内存段是私有的,对它的修改只在此局部范围内有效?
+ *                MAP_SHARE    把该内存段的修改保存到磁盘文件中,可作为进程间的共享内存使用.
+ *                MAP_FIXED    该内存段必须位于addr指定的地址处?
+ *                MAP_ANONYMOUS 匿名共享内存,不涉及到文件(忽略fildes和off参数).
+ *   @param fildes 打开的文件描述符
+ *   @param off  文件数据的偏移值
+ *   @return 返回可用的指针
+ --------------------------------------------------------------------------------------------------
+ * 15. msync系统调用(mmap同步函数)
+ *  
+ *   #include <sys/mman.h>
+ *   int msync(void *addr, size_t len, int flags);
+ *
+ *   @param addr   需要同步的起始地址
+ *   @param len    需要同步的内存长度
+ *   @param flags  控制执行同步的具体方式
+ *                 MS_ASYNC  采用异步写方式
+ *                 MS_SYNC   采用同步写方式
+ *                 MS_INVALIDATE 从文件读回数据
+ *   @return 成功返回0, 失败返回-1
+ --------------------------------------------------------------------------------------------------
+ * 16. munmap释放内存段
+ *  
+ *  #include <sys/mman.h>
+ *  int munmap(void *addr, size_t len);
+ *
  *-------------------------------------------------------------------------------------------------
  */
 
